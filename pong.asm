@@ -3,9 +3,8 @@ SECTION "rst00", ROM0 [$00]
 ; NOT ACTUAL RST VECTOR!!!
 InvertYCoord:
 	ld a,[$ff00+c]
-	xor %11110000
+	cpl
 	ld [$ff00+c],a
-	ret
 
 InvertXCoord:
 	ld a,[$ff00+c]
@@ -28,17 +27,15 @@ SECTION "Header", ROM0 [$104]
 	
 Start0150:
 	di
-    
-    ; palettes
-    ld a, %11100100
-    ld [rBGP], a
-    ld a, %11010000
-    ld [rOBP0], a
-    
-    xor a
-    ld [rSCX], a
+	
+	; palettes
+	xor a
+	ld [rBGP], a
+	ld [rSCX], a
     ld [rSCY], a
     ld [$ff80], a ; ball direction
+    dec a
+    ld [rOBP0], a
 	
 	ld hl,rLCDC
 	ld [hl],%11000011
@@ -53,26 +50,23 @@ Start0150:
 	cp 145
 	jr nz,.lcdEnabled
 	res 7,[hl]
-	
-	ld hl,$9fff
-	ld d,l
-	ld bc,$1ff0
+RestartGame:
+	ld hl,$8000
+	ld bc,$2000
 .loop
 	xor a
-	ld [hld],a
+	ld [hli],a
 	dec bc
 	ld a,c
 	or b
 	jr nz,.loop ; clear memory and write to vram as well
-	dec a
-	ld b,$10
-.loop2
-	ld [hld],a ; create black tile
-	dec b
-	jr nz,.loop2
-RestartGame:
+;	dec a
+;	ld b,$10
+;.loop2
+;	ld [hld],a ; create black tile
+;	dec b
+;	jr nz,.loop2
 	ld de,$fe00 ; start of oam
-	xor a
 	ld c,$9f
 .loop2andAhalf
 	ld [de],a
@@ -98,7 +92,6 @@ RestartGame:
 	jr nz,.loop3
 	ld hl,rLCDC
 	set 7,[hl]
-	xor a
 	ld [rIF],a
 	inc a
 	ld [rIE],a
